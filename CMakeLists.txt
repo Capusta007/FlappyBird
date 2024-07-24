@@ -17,7 +17,12 @@ find_package(SFML 2.6 COMPONENTS graphics window system REQUIRED)
 # Указываем исполняемый файл
 add_executable(
     FlappyBird 
-    src/main.cpp)
+    src/main.cpp
+    src/Resourses/ResourceManager.h
+    src/Resourses/ResourceManager.cpp
+    src/GameElements/Bird.h
+    src/GameElements/Bird.cpp
+    )
 
 # Подключаем библиотеки SFML
 target_link_libraries(FlappyBird sfml-graphics sfml-window sfml-system)
@@ -38,3 +43,9 @@ if(WIN32)
             $<TARGET_FILE_DIR:FlappyBird>)
     endforeach()
 endif()
+
+
+# Помещаем /res в папку с исполняемым файлом
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                        ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
