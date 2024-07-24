@@ -20,6 +20,8 @@ add_executable(
     src/main.cpp
     src/Resourses/ResourceManager.h
     src/Resourses/ResourceManager.cpp
+    src/Resourses/Animation.h
+    src/Resourses/Animation.cpp
     src/GameElements/Bird.h
     src/GameElements/Bird.cpp
     )
