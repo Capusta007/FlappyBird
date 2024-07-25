@@ -1,6 +1,6 @@
 #include "Animation.h"
 
-Animation::Animation(std::vector<sf::Texture> textures, float oneFrameTime)
+Animation::Animation(std::vector<sf::Texture> textures, float oneFrameTime, sf::Texture frameAfterEndOfAnimation)
 {
 	for (sf::Texture texture : textures) {
 		m_textures.push_back(texture);
@@ -9,6 +9,7 @@ Animation::Animation(std::vector<sf::Texture> textures, float oneFrameTime)
 	m_oneFrameTime = oneFrameTime;
 	m_isAnimated = false;
 	m_totalTime = 0;
+	m_frameWhenNotAnimated = frameAfterEndOfAnimation;
 }
 
 void Animation::startAnimation()
@@ -20,7 +21,7 @@ void Animation::startAnimation()
 
 sf::Texture* Animation::getCurrentFrame()
 {
-	if (!m_isAnimated) return nullptr;
+	if (!m_isAnimated) return &m_frameWhenNotAnimated;
 
 	m_totalTime = timer.getElapsedTime().asSeconds();
 	if (m_totalTime < m_oneFrameTime) {
@@ -33,7 +34,7 @@ sf::Texture* Animation::getCurrentFrame()
 	}
 	stopAnimation();
 
-	return nullptr;
+	return &m_frameWhenNotAnimated;
 }
 
 void Animation::stopAnimation()

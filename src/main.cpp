@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-midflap"));
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-upflap"));
 
-	Animation flapAnimation(flapAnimationTextures, 0.2);
+	Animation flapAnimation(flapAnimationTextures, 0.2, birdTexture);
 
 	while (window.isOpen())
 	{
@@ -62,12 +62,8 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if (flapAnimation.isAnimated()) {
-			birdSprite.setTexture(*flapAnimation.getCurrentFrame());
-		}
-		else {
-			birdSprite.setTexture(birdTexture);
-		}
+		//! Допиши в клас анимации кадр, который будет возвращаться после окончания анимации
+		birdSprite.setTexture(*flapAnimation.getCurrentFrame());
 
 
 		window.clear();

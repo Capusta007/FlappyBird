@@ -6,7 +6,7 @@
 class Animation {
 public:
 
-	Animation(std::vector<sf::Texture> textures, float oneFrameTime);
+	Animation(std::vector<sf::Texture> textures, float oneFrameTime, sf::Texture frameAfterEndOfAnimation);
 
 	bool isAnimated() { return m_isAnimated; }
 	void startAnimation();
@@ -14,6 +14,7 @@ public:
 
 private:
 	std::vector<sf::Texture> m_textures;
+	sf::Texture m_frameWhenNotAnimated;
 	int m_frameCounter;
 	float m_oneFrameTime;
 	float m_totalTime;
