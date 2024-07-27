@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 
 #include <iostream>
+#include <ctime>
 
 #include "Resourses/ResourceManager.h"
 #include "Resourses/Animation.h"
@@ -9,43 +10,40 @@
 
 const int windowWidth = 288;
 const int windowHeight = 512;
+const int distanceBetweenPipes = 50;
 
 int main(int argc, char** argv)
 {
+	srand(time(0));
 	ResourceManager resourceManager(argv[0]);
+	if (!resourceManager.loadAllTexturesFromFolder("res/sprites")) {
+		std::cerr << "Can't load textures from res/sprites";
+		return 1;
+	}
+
 
 	sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Flappy Bird!");
 	window.setFramerateLimit(100);
 
 
-
-	resourceManager.loadTexture("background-day", "res/sprites/background-day.png");
-	resourceManager.loadTexture("bluebird-downflap", "res/sprites/bluebird-downflap.png");
-	resourceManager.loadTexture("bluebird-midflap", "res/sprites/bluebird-midflap.png");
-	resourceManager.loadTexture("bluebird-upflap", "res/sprites/bluebird-upflap.png");
-
 	sf::Texture backgroundTexture = resourceManager.getTexture("background-day");
-	sf::Texture birdTexture = resourceManager.getTexture("bluebird-upflap");
-
 
 	sf::Sprite backgroundSprite;
 	sf::Sprite birdSprite;
 	backgroundSprite.setTexture(backgroundTexture);
-	birdSprite.setTexture(birdTexture);
 
-	Bird bird(windowWidth / 4, windowHeight / 2, 0, 0.1, 3);
+	Bird bird(windowWidth / 4, windowHeight / 2);
 
 	std::vector<sf::Texture> flapAnimationTextures;
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-downflap"));
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-midflap"));
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-upflap"));
 
-	Animation flapAnimation(flapAnimationTextures, 0.2, birdTexture);
+	Animation flapAnimation(flapAnimationTextures, 0.2, resourceManager.getTexture("bluebird-upflap"));
 
 	while (window.isOpen())
 	{
 		bird.fall();
-		birdSprite.setPosition({ bird.getX(), windowHeight - bird.getY() });
 
 
 		sf::Event event;
@@ -62,10 +60,13 @@ int main(int argc, char** argv)
 			}
 		}
 
-		//! Допиши в клас анимации кадр, который будет возвращаться после окончания анимации
+
+		// Тут меняются все спрайты
+		birdSprite.setPosition({ bird.getX(), windowHeight - bird.getY() });
 		birdSprite.setTexture(*flapAnimation.getCurrentFrame());
 
 
+		// Отрисовка
 		window.clear();
 		window.draw(backgroundSprite);
 		window.draw(birdSprite);

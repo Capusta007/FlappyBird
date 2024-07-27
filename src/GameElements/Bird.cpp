@@ -21,6 +21,11 @@ bool Bird::isDead()
 	return m_isDead;
 }
 
+void Bird::die()
+{
+	m_isDead = true;
+}
+
 void Bird::fall()
 {
 	m_fallingSpeed += m_acceleration;
