@@ -24,6 +24,8 @@ add_executable(
     src/Resourses/Animation.cpp
     src/GameElements/Bird.h
     src/GameElements/Bird.cpp
+    src/GameElements/Hitbox.h
+    src/GameElements/Hitbox.cpp
     )
 
 # Подключаем библиотеки SFML

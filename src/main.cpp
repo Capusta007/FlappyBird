@@ -6,6 +6,7 @@
 #include "Resourses/ResourceManager.h"
 #include "Resourses/Animation.h"
 #include "GameElements/Bird.h"
+#include "GameElements/Hitbox.h"
 
 
 const int windowWidth = 288;
@@ -27,25 +28,33 @@ int main(int argc, char** argv)
 
 
 	sf::Texture backgroundTexture = resourceManager.getTexture("background-day");
-
 	sf::Sprite backgroundSprite;
-	sf::Sprite birdSprite;
 	backgroundSprite.setTexture(backgroundTexture);
 
-	Bird bird(windowWidth / 4, windowHeight / 2);
+	sf::Sprite birdSprite;
+	Bird bird(windowWidth / 4, windowHeight / 2, sf::Vector2f(resourceManager.getTexture("bluebird-downflap").getSize()));
+	bird.changeHitboxSize(bird.getHitbox().getSize() - sf::Vector2f{7, 3});
 
+	// Creating flap animation
 	std::vector<sf::Texture> flapAnimationTextures;
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-downflap"));
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-midflap"));
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-upflap"));
-
 	Animation flapAnimation(flapAnimationTextures, 0.2, resourceManager.getTexture("bluebird-upflap"));
 
+
+	// Hitboxes
+	sf::RectangleShape birdHitboxSprite(bird.getHitbox().getSize());
+	birdHitboxSprite.setFillColor(sf::Color::Red);
+
+	Hitbox pikeHitbox(bird.getX(), 100, { 20,20 });
+	sf::RectangleShape pike({ 20,20 });
+	pike.setPosition({ pikeHitbox.getX(),windowHeight - pikeHitbox.getY() });
+
+	int c = 0;
 	while (window.isOpen())
 	{
-		bird.fall();
-
-
+		// ќбработка событий
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
@@ -60,16 +69,29 @@ int main(int argc, char** argv)
 			}
 		}
 
+		if (bird.getHitbox().isCollide(pikeHitbox)) {
+			std::cout << "Collision!" << c++ << "\n";
+		}
+
+
+		// »гровые изменени€
+		bird.fall();
+		bird.updateHitboxPosition({3,-2});
+
+
 
 		// “ут мен€ютс€ все спрайты
 		birdSprite.setPosition({ bird.getX(), windowHeight - bird.getY() });
 		birdSprite.setTexture(*flapAnimation.getCurrentFrame());
+		birdHitboxSprite.setPosition(bird.getHitbox().getX(), windowHeight - bird.getHitbox().getY());
 
 
 		// ќтрисовка
 		window.clear();
 		window.draw(backgroundSprite);
+		window.draw(birdHitboxSprite);
 		window.draw(birdSprite);
+		window.draw(pike);
 
 		window.display();
 	}
