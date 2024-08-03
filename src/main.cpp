@@ -7,6 +7,7 @@
 #include "Resourses/Animation.h"
 #include "GameElements/Bird.h"
 #include "GameElements/Hitbox.h"
+#include "GameElements/Pipe.h"
 
 
 const int windowWidth = 288;
@@ -31,9 +32,10 @@ int main(int argc, char** argv)
 	sf::Sprite backgroundSprite;
 	backgroundSprite.setTexture(backgroundTexture);
 
-	sf::Sprite birdSprite;
 	Bird bird(windowWidth / 4, windowHeight / 2, sf::Vector2f(resourceManager.getTexture("bluebird-downflap").getSize()));
-	bird.changeHitboxSize(bird.getHitbox().getSize() - sf::Vector2f{7, 3});
+	bird.changeHitboxSize(bird.getHitbox().getSize() - sf::Vector2f{ 7,3 });
+	sf::Sprite birdSprite;
+	birdSprite.setOrigin(0, bird.getHitbox().getSize().y);
 
 	// Creating flap animation
 	std::vector<sf::Texture> flapAnimationTextures;
@@ -43,13 +45,19 @@ int main(int argc, char** argv)
 	Animation flapAnimation(flapAnimationTextures, 0.2, resourceManager.getTexture("bluebird-upflap"));
 
 
+
+
+
+	Pipe pipe(200, 0, (sf::Vector2f)resourceManager.getTexture("pipe-green").getSize());
+	sf::Texture pipeTexture = resourceManager.getTexture("pipe-green");
+	sf::Sprite pipeSprite(pipeTexture);
+	pipeSprite.setOrigin(0, pipe.getHitbox().getSize().y);
+
 	// Hitboxes
 	sf::RectangleShape birdHitboxSprite(bird.getHitbox().getSize());
 	birdHitboxSprite.setFillColor(sf::Color::Red);
 
-	Hitbox pikeHitbox(bird.getX(), 100, { 20,20 });
-	sf::RectangleShape pike({ 20,20 });
-	pike.setPosition({ pikeHitbox.getX(),windowHeight - pikeHitbox.getY() });
+
 
 	int c = 0;
 	while (window.isOpen())
@@ -66,24 +74,41 @@ int main(int argc, char** argv)
 					bird.fly();
 					flapAnimation.startAnimation();
 				}
+				if (event.key.code == sf::Keyboard::Left) {
+					pipe.setPos(pipe.getX() - 1, pipe.getY());
+				}
+				if (event.key.code == sf::Keyboard::Right) {
+					pipe.setPos(pipe.getX() + 1, pipe.getY());
+				}
+				if (event.key.code == sf::Keyboard::Up) {
+					pipe.setPos(pipe.getX(), pipe.getY() + 1);
+				}
+				if (event.key.code == sf::Keyboard::Down) {
+					pipe.setPos(pipe.getX(), pipe.getY() - 1);
+				}
 			}
 		}
 
-		if (bird.getHitbox().isCollide(pikeHitbox)) {
+		if (bird.getHitbox().isCollide(pipe.getHitbox())) {
 			std::cout << "Collision!" << c++ << "\n";
 		}
 
 
 		// »гровые изменени€
 		bird.fall();
-		bird.updateHitboxPosition({3,-2});
-
+		bird.updateHitboxPosition({ 3,-2 });
+		pipe.move(-0.3, 0);
+		if (pipe.getX() < 0) {
+			pipe.setPos(200, pipe.getY());
+		}
+		pipe.updateHitboxPosition();
 
 
 		// “ут мен€ютс€ все спрайты
 		birdSprite.setPosition({ bird.getX(), windowHeight - bird.getY() });
 		birdSprite.setTexture(*flapAnimation.getCurrentFrame());
-		birdHitboxSprite.setPosition(bird.getHitbox().getX(), windowHeight - bird.getHitbox().getY());
+		birdHitboxSprite.setPosition(bird.getHitbox().getX(), windowHeight - bird.getHitbox().getY() - bird.getHitbox().getSize().y);
+		pipeSprite.setPosition({ pipe.getX(),windowHeight - pipe.getY() });
 
 
 		// ќтрисовка
@@ -91,7 +116,7 @@ int main(int argc, char** argv)
 		window.draw(backgroundSprite);
 		window.draw(birdHitboxSprite);
 		window.draw(birdSprite);
-		window.draw(pike);
+		window.draw(pipeSprite);
 
 		window.display();
 	}
