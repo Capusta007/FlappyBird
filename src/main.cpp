@@ -12,7 +12,7 @@
 
 const int windowWidth = 288;
 const int windowHeight = 512;
-const int distanceBetweenPipes = 50;
+const int distanceBetweenPipes = 80;
 
 int main(int argc, char** argv)
 {
@@ -32,28 +32,28 @@ int main(int argc, char** argv)
 	sf::Sprite backgroundSprite;
 	backgroundSprite.setTexture(backgroundTexture);
 
-	Bird bird(windowWidth / 4, windowHeight / 2, sf::Vector2f(resourceManager.getTexture("bluebird-downflap").getSize()));
+	Bird bird(windowWidth / 4, windowHeight / 2, resourceManager.getTexture("bluebird-upflap"));
 	bird.changeHitboxSize(bird.getHitbox().getSize() - sf::Vector2f{ 7,3 });
-	sf::Sprite birdSprite;
-	birdSprite.setOrigin(0, bird.getHitbox().getSize().y);
 
 	// Creating flap animation
 	std::vector<sf::Texture> flapAnimationTextures;
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-downflap"));
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-midflap"));
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-upflap"));
-	Animation flapAnimation(flapAnimationTextures, 0.2, resourceManager.getTexture("bluebird-upflap"));
+
+	bird.loadFlapAnimation(flapAnimationTextures, 0.2);
 
 
 
 
 
-	Pipe pipe(200, 0, (sf::Vector2f)resourceManager.getTexture("pipe-green").getSize());
 	sf::Texture pipeTexture = resourceManager.getTexture("pipe-green");
-	sf::Sprite pipeSprite(pipeTexture);
-	pipeSprite.setOrigin(0, pipe.getHitbox().getSize().y);
+	Pipe downPipe(200, -200, pipeTexture);
 
-	// Hitboxes
+	Pipe upPipe(200, downPipe.getY() + downPipe.getHitbox().getSize().y + distanceBetweenPipes, pipeTexture);
+	upPipe.flipSpriteVertically();
+
+	// Hitboxes 
 	sf::RectangleShape birdHitboxSprite(bird.getHitbox().getSize());
 	birdHitboxSprite.setFillColor(sf::Color::Red);
 
@@ -72,51 +72,44 @@ int main(int argc, char** argv)
 			if (event.type == sf::Event::KeyPressed) {
 				if (event.key.code == sf::Keyboard::Space) {
 					bird.fly();
-					flapAnimation.startAnimation();
-				}
-				if (event.key.code == sf::Keyboard::Left) {
-					pipe.setPos(pipe.getX() - 1, pipe.getY());
-				}
-				if (event.key.code == sf::Keyboard::Right) {
-					pipe.setPos(pipe.getX() + 1, pipe.getY());
-				}
-				if (event.key.code == sf::Keyboard::Up) {
-					pipe.setPos(pipe.getX(), pipe.getY() + 1);
-				}
-				if (event.key.code == sf::Keyboard::Down) {
-					pipe.setPos(pipe.getX(), pipe.getY() - 1);
+					bird.startFlapAnimation();
 				}
 			}
 		}
 
-		if (bird.getHitbox().isCollide(pipe.getHitbox())) {
-			std::cout << "Collision!" << c++ << "\n";
+		if (bird.getHitbox().isCollide(downPipe.getHitbox()) || bird.getHitbox().isCollide(upPipe.getHitbox())) {
+			std::cout << "Collision! " << c++ << "\n";
 		}
 
 
 		// »гровые изменени€
 		bird.fall();
-		bird.updateHitboxPosition({ 3,-2 });
-		pipe.move(-0.3, 0);
-		if (pipe.getX() < 0) {
-			pipe.setPos(200, pipe.getY());
+		bird.updateHitboxPosition({ 3,1 });
+		downPipe.move(-0.5, 0);
+		upPipe.move(-0.5, 0);
+		if (downPipe.getX() < 0) {
+			downPipe.setPos(200, downPipe.getY());
+			upPipe.setPos(200, upPipe.getY());
 		}
-		pipe.updateHitboxPosition();
-
+		downPipe.updateHitboxPosition();
+		upPipe.updateHitboxPosition();
 
 		// “ут мен€ютс€ все спрайты
-		birdSprite.setPosition({ bird.getX(), windowHeight - bird.getY() });
-		birdSprite.setTexture(*flapAnimation.getCurrentFrame());
+		bird.updateSprite(bird.getX(), windowHeight - bird.getY());
 		birdHitboxSprite.setPosition(bird.getHitbox().getX(), windowHeight - bird.getHitbox().getY() - bird.getHitbox().getSize().y);
-		pipeSprite.setPosition({ pipe.getX(),windowHeight - pipe.getY() });
+		downPipe.updateSprite(downPipe.getX(), windowHeight - downPipe.getY());
+		upPipe.updateSprite(upPipe.getX(), windowHeight - upPipe.getY());
+		
+
 
 
 		// ќтрисовка
 		window.clear();
 		window.draw(backgroundSprite);
 		window.draw(birdHitboxSprite);
-		window.draw(birdSprite);
-		window.draw(pipeSprite);
+		window.draw(bird.getSprite());
+		window.draw(downPipe.getSprite());
+		window.draw(upPipe.getSprite());
 
 		window.display();
 	}
