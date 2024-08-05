@@ -13,7 +13,10 @@
 
 const int windowWidth = 288;
 const int windowHeight = 512;
-const int distanceBetweenPipes = 80;
+const int distanceBetweenPipesY = 80;
+const int distanceBetweenPipesX = 150;
+const int pipeSpeed = 1;
+const int numberOfPipes = 3;
 
 int getRandomNumberInRange(int min, int max) {
 	return rand() % (max - min + 1) + min;
@@ -37,6 +40,17 @@ int main(int argc, char** argv)
 	sf::Sprite backgroundSprite;
 	backgroundSprite.setTexture(backgroundTexture);
 
+	sf::Texture baseTexture = resourceManager.getTexture("base");
+	sf::Sprite baseSprite1;
+	baseSprite1.setTexture(baseTexture);
+	baseSprite1.setPosition(0, windowHeight - baseTexture.getSize().y);
+
+	sf::Sprite baseSprite2;
+	baseSprite2.setTexture(baseTexture);
+	baseSprite2.setPosition(baseTexture.getSize().x, windowHeight - baseTexture.getSize().y);
+
+
+
 	Bird bird(windowWidth / 4, windowHeight / 2, resourceManager.getTexture("bluebird-upflap"));
 	bird.changeHitboxSize(bird.getHitbox().getSize() - sf::Vector2f{ 10,4 });
 
@@ -52,26 +66,22 @@ int main(int argc, char** argv)
 
 
 	sf::Texture pipeTexture = resourceManager.getTexture("pipe-green");
-	const int pipeMaxY = pipeTexture.getSize().y;
-	const int pipeMinY = windowHeight - pipeTexture.getSize().y - distanceBetweenPipes;
-	float pipeCenterY = getRandomNumberInRange(pipeMinY, pipeMaxY);
+	const int pipeMaxY = pipeTexture.getSize().y + baseTexture.getSize().y / 2;
+	const int pipeMinY = windowHeight - pipeTexture.getSize().y - distanceBetweenPipesY + baseTexture.getSize().y / 2;
 
-	Pipe downPipe(200, pipeCenterY - pipeTexture.getSize().y, pipeTexture);
+	std::vector<Pipe> downPipes;
+	std::vector<Pipe> upPipes;
+	for (int i = 0; i < numberOfPipes; i++) {
+		float pipeCenterY = getRandomNumberInRange(pipeMinY, pipeMaxY);
+		downPipes.push_back(Pipe(windowWidth / 4 * 3 + distanceBetweenPipesX * i, pipeCenterY - pipeTexture.getSize().y, pipeTexture));
+		upPipes.push_back(Pipe(windowWidth / 4 * 3 + distanceBetweenPipesX * i, pipeCenterY + distanceBetweenPipesY, pipeTexture));
 
-	Pipe upPipe(200, downPipe.getY() + downPipe.getHitbox().getSize().y + distanceBetweenPipes, pipeTexture);
-	upPipe.flipSpriteVertically();
-
-	// Hitboxes 
-	sf::RectangleShape birdHitboxSprite(bird.getHitbox().getSize());
-	birdHitboxSprite.setFillColor(sf::Color::Red);
+		upPipes[i].flipSpriteVertically();
+	}
 
 
-
-	int c = 0;
 	while (!bird.isDead() && window.isOpen())
 	{
-
-		std::cout << getRandomNumberInRange(1, 2) << "\n";
 		// ќбработка событий
 		sf::Event event;
 		while (window.pollEvent(event))
@@ -87,44 +97,60 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if (bird.getHitbox().isCollide(downPipe.getHitbox()) || bird.getHitbox().isCollide(upPipe.getHitbox())) {
-			std::cout << "Collision! " << c++ << "\n";
-			bird.die();
-		}
-
 
 		// »гровые изменени€
 		bird.fall();
 		bird.updateHitboxPosition({ 5,1 });
-		downPipe.move(-1, 0);
-		upPipe.move(-1, 0);
-		if (downPipe.getX() < 0) {
-			float pipeCenterY = getRandomNumberInRange(pipeMinY, pipeMaxY);
-			downPipe.setPos(200, pipeCenterY - pipeTexture.getSize().y);
-			upPipe.setPos(200, downPipe.getY() + downPipe.getHitbox().getSize().y + distanceBetweenPipes);
+		for (int i = 0; i < numberOfPipes; i++) {
+
+			if (bird.getHitbox().isCollide(downPipes[i].getHitbox()) ||
+				bird.getHitbox().isCollide(upPipes[i].getHitbox()) ||
+				bird.getY() <= baseTexture.getSize().y||
+				bird.getY() + bird.getHitbox().getSize().y >= windowHeight)
+			{
+				bird.die();
+			}
+
+			downPipes[i].move(-pipeSpeed, 0);
+			upPipes[i].move(-pipeSpeed, 0);
+			downPipes[i].updateHitboxPosition();
+			upPipes[i].updateHitboxPosition();
+			if (downPipes[i].getX() < -(int)pipeTexture.getSize().x) {
+				float pipeCenterY = getRandomNumberInRange(pipeMinY, pipeMaxY);
+				downPipes[i].setPos(downPipes[(i + numberOfPipes - 1) % numberOfPipes].getX() + distanceBetweenPipesX, pipeCenterY - pipeTexture.getSize().y);
+				upPipes[i].setPos(upPipes[(i + numberOfPipes - 1) % numberOfPipes].getX() + distanceBetweenPipesX, pipeCenterY + distanceBetweenPipesY);
+			}
+
+			downPipes[i].updateSprite(downPipes[i].getX(), windowHeight - downPipes[i].getY());
+			upPipes[i].updateSprite(upPipes[i].getX(), windowHeight - upPipes[i].getY());
 		}
-		downPipe.updateHitboxPosition();
-		upPipe.updateHitboxPosition();
+
+
 
 		// “ут мен€ютс€ все спрайты
 		bird.updateSprite(bird.getX(), windowHeight - bird.getY());
-		birdHitboxSprite.setPosition(bird.getHitbox().getX(), windowHeight - bird.getHitbox().getY() - bird.getHitbox().getSize().y);
-		downPipe.updateSprite(downPipe.getX(), windowHeight - downPipe.getY());
-		upPipe.updateSprite(upPipe.getX(), windowHeight - upPipe.getY());
-
-
+		baseSprite1.setPosition(baseSprite1.getPosition().x - pipeSpeed, baseSprite1.getPosition().y);
+		baseSprite2.setPosition(baseSprite2.getPosition().x - pipeSpeed, baseSprite2.getPosition().y);
+		if (baseSprite1.getPosition().x <= -(int)baseTexture.getSize().x) {
+			baseSprite1.setPosition(baseSprite2.getPosition());
+			baseSprite2.setPosition(baseTexture.getSize().x, baseSprite2.getPosition().y);
+		}
 
 
 		// ќтрисовка
 		window.clear();
 		window.draw(backgroundSprite);
-		window.draw(birdHitboxSprite);
 		window.draw(bird.getSprite());
-		window.draw(downPipe.getSprite());
-		window.draw(upPipe.getSprite());
+		for (int i = 0; i < numberOfPipes; i++) {
+			window.draw(upPipes[i].getSprite());
+			window.draw(downPipes[i].getSprite());
+		}
+		window.draw(baseSprite1);
+		window.draw(baseSprite2);
 
 		window.display();
 	}
+
 
 	return 0;
 }

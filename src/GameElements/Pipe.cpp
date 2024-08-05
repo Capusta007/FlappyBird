@@ -10,6 +10,20 @@ Pipe::Pipe(float x, float y, sf::Texture texture) : m_hitbox(x, y, sf::Vector2f(
 	m_isSpriteFlipped = false;
 }
 
+Pipe::Pipe(const Pipe& other)
+{
+	m_xCoord = other.m_xCoord;
+	m_yCoord = other.m_yCoord;
+	m_texture = other.m_texture;
+	m_hitbox = other.m_hitbox;
+	m_sprite.setOrigin(0, m_texture.getSize().y);
+	m_sprite.setTexture(m_texture);
+	m_isSpriteFlipped = other.m_isSpriteFlipped;
+	if (m_isSpriteFlipped) {
+		m_sprite.rotate(180);
+	}
+}
+
 void Pipe::flipSpriteVertically()
 {
 	if (m_isSpriteFlipped) {

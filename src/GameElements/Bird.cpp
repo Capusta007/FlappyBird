@@ -60,7 +60,7 @@ void Bird::updateSprite(float x, float y)
 {
 	m_sprite.setPosition(x, y);
 	if (p_flapAnimation->isAnimated()){
-   		m_sprite.setTexture(*p_flapAnimation->getCurrentFrame());
+    		m_sprite.setTexture(*p_flapAnimation->getCurrentFrame());
 	}
 }
 

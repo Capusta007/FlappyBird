@@ -7,7 +7,7 @@ class Pipe {
 
 public:
 	Pipe(float x, float y, sf::Texture texture);
-	
+	Pipe(const Pipe& other);
 
 	float getX() const{ return m_xCoord; }
 	float getY() const{ return m_yCoord; }
