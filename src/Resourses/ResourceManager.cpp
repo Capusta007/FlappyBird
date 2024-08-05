@@ -47,7 +47,7 @@ bool ResourceManager::loadAllTexturesFromFolder(const std::string& relativePathT
 	return true;
 };
 
-sf::Texture ResourceManager::getTexture(const std::string& textureName)  
+sf::Texture& ResourceManager::getTexture(const std::string& textureName)  
 {
 	TexturesMap::iterator it = m_textures.find(textureName);
 	return it->second;

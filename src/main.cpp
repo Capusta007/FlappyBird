@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ctime>
 #include <windows.h>
+#include <string>
 
 #include "Resourses/ResourceManager.h"
 #include "Resourses/Animation.h"
@@ -13,7 +14,7 @@
 
 const int windowWidth = 288;
 const int windowHeight = 512;
-const int distanceBetweenPipesY = 80;
+const int distanceBetweenPipesY = 100;
 const int distanceBetweenPipesX = 150;
 const int pipeSpeed = 1;
 const int numberOfPipes = 3;
@@ -36,11 +37,14 @@ int main(int argc, char** argv)
 	window.setFramerateLimit(100);
 
 
-	sf::Texture backgroundTexture = resourceManager.getTexture("background-day");
+
+	sf::Texture backgroundTexture = resourceManager.getTexture("background-night");
+	sf::Texture baseTexture = resourceManager.getTexture("base");
+	sf::Texture pipeTexture = resourceManager.getTexture("pipe-green");
+
 	sf::Sprite backgroundSprite;
 	backgroundSprite.setTexture(backgroundTexture);
 
-	sf::Texture baseTexture = resourceManager.getTexture("base");
 	sf::Sprite baseSprite1;
 	baseSprite1.setTexture(baseTexture);
 	baseSprite1.setPosition(0, windowHeight - baseTexture.getSize().y);
@@ -54,7 +58,6 @@ int main(int argc, char** argv)
 	Bird bird(windowWidth / 4, windowHeight / 2, resourceManager.getTexture("bluebird-upflap"));
 	bird.changeHitboxSize(bird.getHitbox().getSize() - sf::Vector2f{ 10,4 });
 
-	// Creating flap animation
 	std::vector<sf::Texture> flapAnimationTextures;
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-downflap"));
 	flapAnimationTextures.push_back(resourceManager.getTexture("bluebird-midflap"));
@@ -65,7 +68,6 @@ int main(int argc, char** argv)
 
 
 
-	sf::Texture pipeTexture = resourceManager.getTexture("pipe-green");
 	const int pipeMaxY = pipeTexture.getSize().y + baseTexture.getSize().y / 2;
 	const int pipeMinY = windowHeight - pipeTexture.getSize().y - distanceBetweenPipesY + baseTexture.getSize().y / 2;
 
@@ -79,6 +81,12 @@ int main(int argc, char** argv)
 		upPipes[i].flipSpriteVertically();
 	}
 
+
+	int counter = 0;
+	sf::Texture zeroTexture = resourceManager.getTexture("0");
+	std::vector<sf::Sprite> counterSprites;
+	counterSprites.push_back(sf::Sprite(zeroTexture));
+	counterSprites[0].setPosition(windowWidth / 2 - zeroTexture.getSize().x / 2, 10);
 
 	while (!bird.isDead() && window.isOpen())
 	{
@@ -105,7 +113,7 @@ int main(int argc, char** argv)
 
 			if (bird.getHitbox().isCollide(downPipes[i].getHitbox()) ||
 				bird.getHitbox().isCollide(upPipes[i].getHitbox()) ||
-				bird.getY() <= baseTexture.getSize().y||
+				bird.getY() <= baseTexture.getSize().y ||
 				bird.getY() + bird.getHitbox().getSize().y >= windowHeight)
 			{
 				bird.die();
@@ -124,6 +132,34 @@ int main(int argc, char** argv)
 			downPipes[i].updateSprite(downPipes[i].getX(), windowHeight - downPipes[i].getY());
 			upPipes[i].updateSprite(upPipes[i].getX(), windowHeight - upPipes[i].getY());
 		}
+
+
+		// Меняем счетчик
+		if (downPipes[counter % numberOfPipes].getX() < bird.getX()) {
+			counter++;
+			std::cout << "counter " << std::to_string(counter) << "\n";
+
+			bool shouldChange = false;
+			if (std::to_string(counter).size() > counterSprites.size()) {
+				counterSprites.push_back(sf::Sprite(zeroTexture));
+				counterSprites[counterSprites.size() - 1].setPosition(counterSprites[0].getPosition());
+				counterSprites[counterSprites.size() - 1].move(zeroTexture.getSize().x * (counterSprites.size() - 1), 0);
+				shouldChange = true;
+			}
+
+			int temp = counter;
+			for (int i = 0; i < counterSprites.size(); i++) {
+				if (shouldChange) {
+					counterSprites[i].move(-(int)zeroTexture.getSize().x / 2, 0);
+				}
+				counterSprites[counterSprites.size() - i - 1].setTexture(resourceManager.getTexture(std::to_string(temp % 10)));
+				temp /= 10;
+			}
+		}
+
+
+
+
 
 
 
@@ -147,6 +183,9 @@ int main(int argc, char** argv)
 		}
 		window.draw(baseSprite1);
 		window.draw(baseSprite2);
+		for (sf::Sprite counterSprite : counterSprites) {
+			window.draw(counterSprite);
+		}
 
 		window.display();
 	}

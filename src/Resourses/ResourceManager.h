@@ -19,7 +19,7 @@ public:
 
 	bool loadTexture(const std::string& textureName, const std::string& path);
 	bool loadAllTexturesFromFolder(const std::string& pathToFolder);
-	sf::Texture getTexture(const std::string& textureName);
+	sf::Texture& getTexture(const std::string& textureName);
 	std::string getPathToExecutableFolder() const { return m_pathToExecutableFolder; }
 
 
