@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <ctime>
+#include <windows.h>
 
 #include "Resourses/ResourceManager.h"
 #include "Resourses/Animation.h"
@@ -13,6 +14,10 @@
 const int windowWidth = 288;
 const int windowHeight = 512;
 const int distanceBetweenPipes = 80;
+
+int getRandomNumberInRange(int min, int max) {
+	return rand() % (max - min + 1) + min;
+}
 
 int main(int argc, char** argv)
 {
@@ -33,7 +38,7 @@ int main(int argc, char** argv)
 	backgroundSprite.setTexture(backgroundTexture);
 
 	Bird bird(windowWidth / 4, windowHeight / 2, resourceManager.getTexture("bluebird-upflap"));
-	bird.changeHitboxSize(bird.getHitbox().getSize() - sf::Vector2f{ 7,3 });
+	bird.changeHitboxSize(bird.getHitbox().getSize() - sf::Vector2f{ 10,4 });
 
 	// Creating flap animation
 	std::vector<sf::Texture> flapAnimationTextures;
@@ -46,9 +51,12 @@ int main(int argc, char** argv)
 
 
 
-
 	sf::Texture pipeTexture = resourceManager.getTexture("pipe-green");
-	Pipe downPipe(200, -200, pipeTexture);
+	const int pipeMaxY = pipeTexture.getSize().y;
+	const int pipeMinY = windowHeight - pipeTexture.getSize().y - distanceBetweenPipes;
+	float pipeCenterY = getRandomNumberInRange(pipeMinY, pipeMaxY);
+
+	Pipe downPipe(200, pipeCenterY - pipeTexture.getSize().y, pipeTexture);
 
 	Pipe upPipe(200, downPipe.getY() + downPipe.getHitbox().getSize().y + distanceBetweenPipes, pipeTexture);
 	upPipe.flipSpriteVertically();
@@ -60,8 +68,10 @@ int main(int argc, char** argv)
 
 
 	int c = 0;
-	while (window.isOpen())
+	while (!bird.isDead() && window.isOpen())
 	{
+
+		std::cout << getRandomNumberInRange(1, 2) << "\n";
 		// Обработка событий
 		sf::Event event;
 		while (window.pollEvent(event))
@@ -79,17 +89,19 @@ int main(int argc, char** argv)
 
 		if (bird.getHitbox().isCollide(downPipe.getHitbox()) || bird.getHitbox().isCollide(upPipe.getHitbox())) {
 			std::cout << "Collision! " << c++ << "\n";
+			bird.die();
 		}
 
 
 		// Игровые изменения
 		bird.fall();
-		bird.updateHitboxPosition({ 3,1 });
-		downPipe.move(-0.5, 0);
-		upPipe.move(-0.5, 0);
+		bird.updateHitboxPosition({ 5,1 });
+		downPipe.move(-1, 0);
+		upPipe.move(-1, 0);
 		if (downPipe.getX() < 0) {
-			downPipe.setPos(200, downPipe.getY());
-			upPipe.setPos(200, upPipe.getY());
+			float pipeCenterY = getRandomNumberInRange(pipeMinY, pipeMaxY);
+			downPipe.setPos(200, pipeCenterY - pipeTexture.getSize().y);
+			upPipe.setPos(200, downPipe.getY() + downPipe.getHitbox().getSize().y + distanceBetweenPipes);
 		}
 		downPipe.updateHitboxPosition();
 		upPipe.updateHitboxPosition();
@@ -99,7 +111,7 @@ int main(int argc, char** argv)
 		birdHitboxSprite.setPosition(bird.getHitbox().getX(), windowHeight - bird.getHitbox().getY() - bird.getHitbox().getSize().y);
 		downPipe.updateSprite(downPipe.getX(), windowHeight - downPipe.getY());
 		upPipe.updateSprite(upPipe.getX(), windowHeight - upPipe.getY());
-		
+
 
 
 
